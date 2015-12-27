@@ -1,18 +1,15 @@
 add_library('serial')
 add_library("themidibus")
 
-serialPort = None
-val = 0
-midiBus = None
 ON = True
 OFF = not ON
-noteState = OFF
+
+serialPort = None
+midiBus = None
+noteCount = 5
+previousNoteState = [OFF] * noteCount
 
 def setup():
-    # Draw a grey square
-    size(200, 200)
-    background(204)
-    
     # Connect to a MIDI bus (output only)
     print "Available MIDI Outputs: "
     for output in MidiBus.availableOutputs():
@@ -30,31 +27,29 @@ def setup():
     serialPort = Serial(this, portName, 9600)
     print "Connected!"
 
+
 def draw():
-    global val
-    
     if (serialPort.available() > 0):
-       val = serialPort.read()
+        serialValue = serialPort.read()
+        print "Raw serial value:", serialValue
+ 
+        for noteIndex in range(noteCount):
+            noteState = (serialValue & 0x01 == 1)
+            if (noteState != previousNoteState[noteIndex]):
+                sendNote(noteIndex, noteState)
+            
+            previousNoteState[noteIndex] = noteState
+            serialValue = serialValue >> 1
+
+        print previousNoteState
         
-    if (val == 0):
-        fill(0)
-        sendNote(OFF)
-    else:
-        fill(255)
-        sendNote(ON)
-        
-    rect(50, 50, 100, 100)
     
-    
-def sendNote(state):
-    global noteState
+def sendNote(noteIndex, state):
     channel = 0
-    pitch = 64
+    pitch = 60 + noteIndex
     velocity = 127
     
-    if (state == ON and noteState == OFF):
+    if (state == ON):
         myBus.sendNoteOn(channel, pitch, velocity)
-        noteState = ON
-    elif (state == OFF and noteState == ON):
+    else:
         myBus.sendNoteOff(channel, pitch, velocity)
-        noteState = OFF

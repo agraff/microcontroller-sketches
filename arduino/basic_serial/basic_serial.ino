@@ -1,27 +1,42 @@
-int switchPin = 10;
+int firstSwitchPin = 8;
+int lastSwitchPin = 12;
 int ledPin = 13;
 int PUSHED = LOW;
 
 void setup() {
-  pinMode(switchPin, INPUT_PULLUP);
+  for (int pin = firstSwitchPin; pin <= lastSwitchPin; pin++) {
+    pinMode(pin, INPUT_PULLUP);
+  }
+  
   pinMode(ledPin, OUTPUT);
   
   Serial.begin(9600);
 }
 
 void loop() {
-  if (digitalRead(switchPin) == PUSHED) {
+  int pinsState = 0;
+  
+  for (int pin = lastSwitchPin; pin >= firstSwitchPin; pin--) {
+    pinsState = pinsState << 1;
+    
+    if (digitalRead(pin) == PUSHED) {
+      pinsState += 1;
+    }
+  }
+
+  serialWrite(pinsState);
+
+  if (pinsState > 0) {
     digitalWrite(ledPin, HIGH);
-    serialWrite(1);
   } else {
     digitalWrite(ledPin, LOW);
-    serialWrite(0);
   }
+
   delay(100);
 }
 
 void serialWrite(int value) {
-  bool useBinary = true;
+  bool useBinary = true; // set false to help with debugging
   
   if (useBinary) {
     Serial.write(value);
