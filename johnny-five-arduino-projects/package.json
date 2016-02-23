@@ -1,0 +1,8 @@
+{
+  "name": "johnny-five-arduino-projects",
+  "version": "0.0.1",
+  "description": "Projects for the Arduino using the Johnny-Five framework.",
+  "dependencies": {
+    "johnny-five": "^0.9.25"
+  }
+}
